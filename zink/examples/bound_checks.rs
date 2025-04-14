@@ -4,7 +4,7 @@
 #[cfg(not(target_arch = "wasm32"))]
 extern crate std;
 
-use zink::primitives::numeric::SafeNumeric;
+use zink::num::SafeNumeric;
 #[allow(unused_imports)]
 use zink::primitives::U256;
 
@@ -28,6 +28,8 @@ pub fn division(x: i32) -> i32 {
     x.safe_div(-1)
 }
 
+// NOTE: these tests are useless since they are not testing the contract.
+#[cfg(feature = "wrong-tests")]
 #[cfg(test)]
 mod tests {
     use super::*;

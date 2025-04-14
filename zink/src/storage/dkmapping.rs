@@ -1,18 +1,14 @@
 //! Double key mapping
 
-use crate::{
-    ffi,
-    storage::{StorageValue, TransientStorageValue},
-    Asm,
-};
+use crate::{asm, storage::Value};
 
 /// Storage mapping interface
 pub trait DoubleKeyMapping {
     const STORAGE_SLOT: i32;
 
-    type Key1: Asm;
-    type Key2: Asm;
-    type Value: StorageValue;
+    type Key1: Value;
+    type Key2: Value;
+    type Value: Value;
 
     #[cfg(not(target_family = "wasm"))]
     fn storage_key(key1: Self::Key1, key2: Self::Key2) -> [u8; 32];
@@ -30,7 +26,7 @@ pub trait DoubleKeyMapping {
         value.push();
         load_double_key(key1, key2, Self::STORAGE_SLOT);
         unsafe {
-            ffi::evm::sstore();
+            asm::evm::sstore();
         }
     }
 }
@@ -39,9 +35,9 @@ pub trait DoubleKeyMapping {
 pub trait DoubleKeyTransientMapping {
     const STORAGE_SLOT: i32;
 
-    type Key1: Asm;
-    type Key2: Asm;
-    type Value: TransientStorageValue;
+    type Key1: Value;
+    type Key2: Value;
+    type Value: Value;
 
     #[cfg(not(target_family = "wasm"))]
     fn storage_key(key1: Self::Key1, key2: Self::Key2) -> [u8; 32];
@@ -59,44 +55,44 @@ pub trait DoubleKeyTransientMapping {
         value.push();
         load_double_key(key1, key2, Self::STORAGE_SLOT);
         unsafe {
-            ffi::evm::tstore();
+            asm::evm::tstore();
         }
     }
 }
 
 /// Load storage key to stack
 #[inline(always)]
-pub fn load_double_key(key1: impl Asm, key2: impl Asm, index: i32) {
+pub fn load_double_key(key1: impl Value, key2: impl Value, index: i32) {
     unsafe {
-        ffi::label_reserve_mem_64();
+        asm::label_reserve_mem_64();
 
         // write key1 to memory
         key1.push();
-        ffi::evm::push0();
-        ffi::evm::mstore();
+        asm::evm::push0();
+        asm::evm::mstore();
 
         // write index to memory
         index.push();
-        ffi::asm::push_u8(0x20);
-        ffi::evm::mstore();
+        asm::ext::push_u8(0x20);
+        asm::evm::mstore();
 
         // hash key
-        ffi::asm::push_u8(0x40);
-        ffi::evm::push0();
-        ffi::evm::keccak256();
+        asm::ext::push_u8(0x40);
+        asm::evm::push0();
+        asm::evm::keccak256();
 
         // stores the hash
-        ffi::evm::push0();
-        ffi::evm::mstore();
+        asm::evm::push0();
+        asm::evm::mstore();
 
         // write index to memory
         key2.push();
-        ffi::asm::push_u8(0x20);
-        ffi::evm::mstore();
+        asm::ext::push_u8(0x20);
+        asm::evm::mstore();
 
         // hash key
-        ffi::asm::push_u8(0x40);
-        ffi::evm::push0();
-        ffi::evm::keccak256();
+        asm::ext::push_u8(0x40);
+        asm::evm::push0();
+        asm::evm::keccak256();
     }
 }

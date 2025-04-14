@@ -57,14 +57,14 @@ impl ContractStorage {
                             const STORAGE_KEY: [u8; 32] = [0u8; 32];
 
                             fn get() -> Self::Value {
-                                zink::Asm::push(Self::STORAGE_SLOT);
-                                <Self::Value as zink::storage::StorageValue>::sload()
+                                zink::Value::push(Self::STORAGE_SLOT);
+                                <Self::Value as zink::Value>::sload()
                             }
 
                             fn set(value: Self::Value) {
                                 value.push();
-                                zink::Asm::push(Self::STORAGE_SLOT);
-                                unsafe { zink::ffi::evm::sstore(); }
+                                zink::Value::push(Self::STORAGE_SLOT);
+                                unsafe { zink::asm::evm::sstore(); }
                             }
                         }
                     }
@@ -87,13 +87,13 @@ impl ContractStorage {
 
                             fn get(key: Self::Key) -> Self::Value {
                                 zink::storage::mapping::load_key(key, Self::STORAGE_SLOT);
-                                <Self::Value as zink::storage::StorageValue>::sload()
+                                <Self::Value as zink::Value>::sload()
                             }
 
                             fn set(key: Self::Key, value: Self::Value) {
                                 value.push();
                                 zink::storage::mapping::load_key(key, Self::STORAGE_SLOT);
-                                unsafe { zink::ffi::evm::sstore(); }
+                                unsafe { zink::asm::evm::sstore(); }
                             }
                         }
                     }
@@ -117,13 +117,13 @@ impl ContractStorage {
 
                             fn get(key1: Self::Key1, key2: Self::Key2) -> Self::Value {
                                 zink::storage::dkmapping::load_double_key(key1, key2, Self::STORAGE_SLOT);
-                                <Self::Value as zink::storage::StorageValue>::sload()
+                                <Self::Value as zink::Value>::sload()
                             }
 
                             fn set(key1: Self::Key1, key2: Self::Key2, value: Self::Value) {
                                 value.push();
                                 zink::storage::dkmapping::load_double_key(key1, key2, Self::STORAGE_SLOT);
-                                unsafe { zink::ffi::evm::sstore(); }
+                                unsafe { zink::asm::evm::sstore(); }
                             }
                         }
                     }
@@ -183,7 +183,7 @@ impl ContractStorage {
         }).collect();
 
         let expanded = quote! {
-            use zink::Asm;
+            use zink::Value;
             #(#field_structs)*
             impl #impl_generics #struct_name #ty_generics #where_clause {
                 #(#method_impls)*

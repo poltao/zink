@@ -1,5 +1,5 @@
 //! Fixed bytes
-use crate::{ffi, storage::StorageValue, Asm};
+use crate::{asm, storage::Value};
 use paste::paste;
 
 macro_rules! impl_bytes {
@@ -29,14 +29,22 @@ macro_rules! impl_bytes {
                 #[inline(always)]
                 pub fn eq(self, other: Self) -> bool {
                     paste::paste! {
-                        unsafe { ffi::bytes::[< bytes $count _eq >](self, other) }
+                        unsafe { asm::bytes::[< bytes $count _eq >](self, other) }
                     }
                 }
             }
 
-            impl Asm for [<Bytes $count>] {
+            impl Value for [<Bytes $count>] {
+                fn tload() -> Self {
+                    unsafe { asm::bytes::[<tload_bytes $count>]() }
+                }
+
+                fn sload() -> Self {
+                    unsafe { asm::bytes::[<sload_bytes $count>]() }
+                }
+
                 fn push(self) {
-                    unsafe { ffi::bytes::[<push_bytes $count>](self) }
+                    unsafe { asm::bytes::[<push_bytes $count>](self) }
                 }
 
                 #[cfg(not(target_family = "wasm"))]
@@ -44,12 +52,6 @@ macro_rules! impl_bytes {
                     let mut output = [0; 32];
                     output[(32-$count)..].copy_from_slice(&self.0);
                     output
-                }
-            }
-
-            impl StorageValue for [<Bytes $count>] {
-                fn sload() -> Self {
-                    unsafe { ffi::bytes::[<sload_bytes $count>]() }
                 }
             }
         }
