@@ -2,7 +2,6 @@
 
 pub mod address;
 pub mod bytes;
-pub mod numeric;
 pub mod properties;
 pub mod u256;
 

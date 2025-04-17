@@ -25,11 +25,30 @@ jobs:
       - name: Build Examples
         run: cargo build --examples --target wasm32-unknown-unknown --release
 
+      - name: Build and Install zint-cli
+        run: |
+          cargo build --release -p zint-cli
+          cargo install --path zint/cli
+
       - name: Run Tests
         run: cargo nextest run --workspace --no-fail-fast --release
 
       - name: Run Example Tests
         run: cargo nextest run --workspace --no-fail-fast --release --examples
+
+      - name: Test Elko Addition Example
+        run: |
+          cargo run -p elko -- new addition
+          cd addition
+          cargo run -p elko --manifest-path ../Cargo.toml -- build
+          cargo test
+
+      - name: Test Foundry Integration
+        run: |
+          cd zint/storage
+          forge build
+          cargo zint new
+          cargo zint run
 
   check:
     name: Check

@@ -1,9 +1,5 @@
 //! Key-Value storage
-use crate::{
-    ffi,
-    storage::{StorageValue, TransientStorageValue},
-    Asm,
-};
+use crate::{asm, storage::Value};
 
 /// Storage trait. Currently not for public use
 pub trait Storage {
@@ -11,20 +7,20 @@ pub trait Storage {
     const STORAGE_KEY: [u8; 32];
     const STORAGE_SLOT: i32;
 
-    type Value: StorageValue + Asm;
+    type Value: Value;
 
     /// Get value from storage.
     fn get() -> Self::Value {
-        Asm::push(Self::STORAGE_SLOT);
+        Value::push(Self::STORAGE_SLOT);
         Self::Value::sload()
     }
 
     /// Set value to storage.
     fn set(value: Self::Value) {
         value.push();
-        Asm::push(Self::STORAGE_SLOT);
+        Value::push(Self::STORAGE_SLOT);
         unsafe {
-            ffi::evm::sstore();
+            asm::evm::sstore();
         }
     }
 }
@@ -35,20 +31,20 @@ pub trait TransientStorage {
     const STORAGE_KEY: [u8; 32];
     const STORAGE_SLOT: i32;
 
-    type Value: TransientStorageValue + Asm;
+    type Value: Value;
 
     /// Get value from transient storage.
     fn get() -> Self::Value {
-        Asm::push(Self::STORAGE_SLOT);
+        Value::push(Self::STORAGE_SLOT);
         Self::Value::tload()
     }
 
     /// Set value to transient storage.
     fn set(value: Self::Value) {
         value.push();
-        Asm::push(Self::STORAGE_SLOT);
+        Value::push(Self::STORAGE_SLOT);
         unsafe {
-            ffi::evm::tstore();
+            asm::evm::tstore();
         }
     }
 }
